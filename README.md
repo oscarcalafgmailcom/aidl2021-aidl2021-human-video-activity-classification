@@ -52,34 +52,6 @@ The NTU RGB+D (or NTU RGB+D 120) Action Recognition Dataset made available by th
 
 [More info at: ROSE](https://rose1.ntu.edu.sg/dataset/actionRecognition/)
 
-| 1.1 Daily Actions (39)       |                              |                              |                              |
-|:----------------------------:|:----------------------------:|:----------------------------:|:----------------------------:|
-| A1: drink water              | A2: eat meal                 | A3: brush teeth              | A4: brush hair               |
-| A5: drop                     | A6: pick up                  | A7: throw                    | A8: sit down                 |
-| A9: stand up                 | A10: clapping                | A11: reading                 | A12: writing                 |
-| A13: tear up paper           | A14: put on jacket           | A15: take off jacket         | A16: put on a shoe           |
-| A17: take off a shoe         | A18: put on glasses          | A19: take off glasses        | A20: put on a hat/cap        |
-| A21: take off a hat/cap      | A22: cheer up                | A23: hand waving             | A24: kicking something       |
-| A25: reach into pocket       | A26: hopping                 | A27: jump up                 | A28: phone call              |
-| A29: play with phone/tablet  | A30: type on a keyboard      | A31: point to something      | A32: taking a selfie         |
-| A33: check time (from watch) | A34: rub two hands           | A35: nod head/bow            | A36: shake head              |
-| A37: wipe face | A38: salute | A39: put palms together      | A40: cross hands in front    |
-
-
-| 1.2 Medical Conditions (9)   |                              |                              |                              |
-|:----------------------------:|:----------------------------:|:----------------------------:|:----------------------------:|
-| A41: sneeze/cough            | A42: staggering              | A43: falling down            | A44: headache                |
-| A45: chest pain              | A46: back pain               | A47: neck pain               | A48: nausea/vomiting         |
-| A49: fan self                |  |  |  |
-
-
-| 1.3 Mutual Actions (11)      | / Two Person Interactions    |                              |                              |
-|:----------------------------:|:----------------------------:|:----------------------------:|:----------------------------:|
-| A50: punch/slap              | A51: kicking                 | A52: pushing                 | A53: pat on back             |
-| A54: point finger            | A55: hugging                 | A56: giving object           | A57: touch pocket            |
-| A58: shaking hands           | A59: walking towards         | A60: walking apart |  |
-
-
 Due to the size of the dataset, computation was very demanding. So partial loadings of the dataset was used. The distribution of classes is homogeneous, so instead of having 948 videos per class, 180 was used.
 It was thought of that the reduction in the number of samples could have presented an overfeed problem, but the numbers showed  otherwise. Posing no limitation to our models even with only 50 samples.
 
@@ -177,7 +149,7 @@ Use an external disk for the dataset. In case there is the need to scale the mac
 ### CNN + LSTM
 | Parameters    | Trainable parameters|
 |:-------------:|:-------------------:|
-| 4194058       | 4194058             |
+| 4.194.058     | 4.194.058           |
 
  Starting from scratch with a classical approach to the problem, a convolutional layer to obtain a feature vector and a fully connected layer for classification was considered.
 Obviously the LSTM posed alot of problems in the beginning. The LSTM was placed at the beginning of the classification with a depth equal to the number of features in our network.
@@ -232,7 +204,7 @@ There exist known networks in literature used with great results in feature extr
 ### VGG16 + LSTM
 | Parameters    | Trainable parameters|
 |:-------------:|:-------------------:|
-| 138423208     | 45081268            |
+| 138.423.208   | 183.504.476         |
 
 <img src="images/VGG16Model.png" alt="VGG16 Model" width="600"/>
 
@@ -259,7 +231,7 @@ Trained faster, with good results. But not able to fit in a raspberry or similar
 ### 3DCNN Model
 | Parameters    | Trainable parameters|
 |:-------------:|:-------------------:|
-| 41828476      | 41828476            |
+| 41.828.476    | 41.828.476          |
 
 <img src="images/3DCNNModel.png" alt="3DCNN Model" width="600"/>
 
@@ -274,21 +246,22 @@ The main disadvantage of this model is that the number of parameters is very hig
 ### 2NETWORKS RESNET+RNN
 | Parameters    | Trainable parameters|
 |:-------------:|:-------------------:|
-| 41828476      | 41828476            |
+| 26.894.184    | 26.841.064          |
 
 ### RESNET 152 +LSTM with preprocessed UCF 101 dataset
 After experimenting with alterations of the aforementioned models and computational options, collab pro which gives access to specially designated faster T4 and P100 GPU instead of K80 was subsequently used. Feature extraction was carried out with a resnet152 model through transfer learning which provides independent image features of each frame in which the LSTM can capture temporal ordering and long range dependencies ultimately presenting a spatio-temporal solution. Under the presumption that the Resnet contains less parameters, its choice was motivated to invariantly speed up training to obtain a desirable result. A preprocessed dataset of the UFC101 from (Christoph Feichtenhofer, Axel Pinz, Andrew Zisserman"Convolutional Two-Stream Network Fusion for Video Action Recognition" in Proc. CVPR 2016), with characteristics as explained in the earlier section was used, thus circumventing the lubourous task associated with prepreprocessing the datasets. With computational power of the collab pro, all the data set was used first to prevent overfitting and also to test the limits of our computational power.
 
-### Procedure
+#### Procedure
 With insights from papers, most especially the following (Quo Vadis, Action Recognition? A new model and the Kinetics Data set. J. Carreira et al 
 ) and (T. Cooijmans, N. Ballas, C. Laurent, and A. Courville. Recurrent batch normalization), few modifications were considered: 
 (1) Consider batch normalization after the last fully connected layer of the CNN with the classifier layer removed essentially to avoid saturations that could occur in the tanh activation functions in the LSTM (2)  Resize the images to the default input of the Resnet, [3,224,224], then subsequently downsize to [3,128,128] and [3,48,48] (3) To only consider the last output of the LSTM as done in almost all works in literature.
 (4) Increase the LSTM , 2 was selected and increased to 3 
 With a sequence of time steps, 25 (number of frames 25), with an option to subsample, the CNN was used for a designer discretion choice of sequence of features into the LSTM. The model was trained only considering cross-enthropy loss at the end of the last time step.
 
-## Results
+#### Results
  Desirable results were obtained after 23 epochs of training and testing as shown in the figure below, from the results as shown in the loss and accuracy curves it could be realised that the model is generalised enough primarily because all the datasets was used thus tools such as drop out might not be needed, and including LSM layers to increase the depth of our model would overcomplicate the model which could inherently lead to overfitting. Thus the results was maintained as such. 
 
+<img src="images/ResNetLSTMCurves.png" alt="ResNet+LSTM Curves" width="300"/>
 
 ## FUTURE
 IT must be said there is alot to do.
